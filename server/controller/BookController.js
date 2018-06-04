@@ -1,18 +1,17 @@
 
+'use strict';
 
 class BookController{
     constructor(){};
 
     create(req, res, next){
-        return true;
+        res.json({status: true, message: 'created'});
     }
 
     get(req, res, next){
-        return [
-            {id: 1, name: 'Buku 1', },
-            {id: 2, name: 'Buku 2', },
-            {id: 3, name: 'Buku 3', },            
-        ];
+        res.json(
+            {id: 1, name: 'Buku 1'}
+        );
     }
 }
 

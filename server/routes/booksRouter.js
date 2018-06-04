@@ -1,14 +1,12 @@
 import express from 'express';
 import BookController from '../controller/BookController';
 
-const {
-    create, get
-} = new BookController();
+const bookController = new BookController();
 
 const bookRouter = express.Router();
 
 bookRouter.route('/books')
-  .post(create)
-  .get(get);
+  .put(bookController.create)
+  .get(bookController.get);
 
 export default bookRouter;

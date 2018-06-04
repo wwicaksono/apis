@@ -4,7 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
-import booksRouter from './server/routes/booksRouter';
+import booksRouter from './routes/booksRouter';
 
 const server = express();
 const port = process.env.PORT || 7000;
@@ -12,7 +12,7 @@ const port = process.env.PORT || 7000;
 dotenv.load();
 
 // Middleware
-server.use(logger);
+server.use(logger(':method :url :status :response-time ms :: :res[content-length] ":referrer" ":user-agent"'));
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({ extended: false }));
 
