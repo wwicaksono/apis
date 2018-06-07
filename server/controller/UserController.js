@@ -1,13 +1,17 @@
 import UserModel from "../models/UserModel";
+import UserFacade from "../facade/UserFacade";
 import bcrypt from "bcrypt";
 
 class UserController{
-    constructor(){};
+
+    constructor(){
+    };
 
     async create(req, res, next){
 
         const username = req.body.username || null;
         const password = req.body.password || null;
+
         let hash = null;
         if(password)
             hash = await bcrypt.hash(password, 5);
@@ -38,14 +42,57 @@ class UserController{
     }
 
     async get(req, res, next){
-        const users = await UserModel.findAll();
+
+        const id = req.params.id || null;
+
+        const users = id ? await UserModel.findById(id) : await UserModel.findAll();
+
         res.json(
             users
         );
     }
 
     delete(req, res, next){
-        res.status(200);
+        res.status(200).json('deleted');
+    }
+
+    async verify(req, res, next){
+
+        const userFacade = new UserFacade();
+        const validation = await userFacade.validateOnCreate(req.body);
+
+        if(typeof validation === 'string'){
+            return res.json({
+                status: false,
+                message: validation
+            });
+        }
+        else{
+            try {
+                const user_data = await UserModel.findOne({where: {username: validation.username}});
+
+                if(user_data){
+                    const result = await bcrypt.compare(req.body.password, user_data.password);
+                    
+                    if(result)
+                        return res.json({
+                            status: true,
+                            message: 'valid'
+                        });
+                }
+            } catch (error) {
+                console.error(error);
+                return res.status(500).json({
+                    status: false,
+                    message: error.message
+                })
+            }
+
+            return res.json({
+                status: false,
+                message: 'not valid'
+            });
+        }
     }
 }
 

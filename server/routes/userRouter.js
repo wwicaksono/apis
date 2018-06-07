@@ -5,11 +5,13 @@ const userController = new UserController();
 
 const userRouter = express.Router();
 
-userRouter.route('/users/:iduser')
-  .get(userController.get)
-  .delete(userController.delete);
+userRouter.route('/users/:id')
+    .get(userController.get)
+    .delete(userController.delete);
 
 userRouter.route('/users')
-  .put(userController.create);
+    .get(userController.get)
+    .post(userController.verify)
+    .put(userController.create);
 
 export default userRouter;

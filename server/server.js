@@ -17,6 +17,11 @@ server.use(bodyParser.urlencoded({ extended: false }));
 // Router
 server.use('/v1/apis', userRouter);
 
+process.on('unhandledRejection', function(err){
+    console.error(err.stack);
+    // process.exit(1);
+});
+
 // Server init
 server.listen(port, () => {
   console.info(`::: Connected on port: ${port} :::`);
