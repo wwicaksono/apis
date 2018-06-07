@@ -1,4 +1,5 @@
 import UserModel from "../models/UserModel";
+import bcrypt from "bcrypt";
 
 class UserController{
     constructor(){};
@@ -7,6 +8,9 @@ class UserController{
 
         const username = req.body.username || null;
         const password = req.body.password || null;
+        let hash = null;
+        if(password)
+            hash = await bcrypt.hash(password, 5);
 
         try {
             const result = await UserModel.findOrCreate(
@@ -15,7 +19,7 @@ class UserController{
                         username: username
                     },
                     defaults: {
-                        password: password
+                        password: hash
                     }
                 }
             );
