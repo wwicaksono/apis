@@ -71,11 +71,9 @@ class UserController {
         else {
             passport.authenticate('local', { session: false }, (err, user, info) => {
                 if (err || !user) {
-                    console.error(err);
                     return res.status(500).json({
                         status: false,
-                        message: err || 'user not exist',
-                        user: user
+                        message: err || 'user not exist'
                     });
                 }
 
