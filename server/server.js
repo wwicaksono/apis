@@ -1,9 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import logger from 'morgan';
-import path from 'path';
 import bodyParser from 'body-parser';
-
 import userRouter from './routes/userRouter';
 
 const server = express();

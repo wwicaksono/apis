@@ -1,5 +1,6 @@
 import express from 'express';
 import UserController from '../controller/UserController';
+import auth from '../library/auth';
 
 const userController = new UserController();
 
@@ -10,7 +11,7 @@ userRouter.route('/users/:id')
     .delete(userController.delete);
 
 userRouter.route('/users')
-    .get(userController.get)
+    .get(auth.authenticate('jwt', {session: false}), userController.get)
     .post(userController.verify)
     .put(userController.create);
 

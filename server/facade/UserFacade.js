@@ -10,8 +10,7 @@ class UserFacade{
      * @return {mixed}
      */
     async validateOnCreate(params){
-        console.log(params);
-        
+                
         let result = {};
 
         if(params.username && params.password){

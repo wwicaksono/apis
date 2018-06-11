@@ -1,19 +1,21 @@
 import UserModel from "../models/UserModel";
 import UserFacade from "../facade/UserFacade";
+import passport from "passport";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-class UserController{
+class UserController {
 
-    constructor(){
+    constructor() {
     };
 
-    async create(req, res, next){
+    async create(req, res, next) {
 
         const username = req.body.username || null;
         const password = req.body.password || null;
 
         let hash = null;
-        if(password)
+        if (password)
             hash = await bcrypt.hash(password, 5);
 
         try {
@@ -28,10 +30,10 @@ class UserController{
                 }
             );
 
-            if(result[1]){
+            if (result[1]) {
                 res.json('user created');
             }
-            else{
+            else {
                 res.json('username exists');
             }
 
@@ -41,7 +43,7 @@ class UserController{
         }
     }
 
-    async get(req, res, next){
+    async get(req, res, next) {
 
         const id = req.params.id || null;
 
@@ -52,46 +54,49 @@ class UserController{
         );
     }
 
-    delete(req, res, next){
+    delete(req, res, next) {
         res.status(200).json('deleted');
     }
 
-    async verify(req, res, next){
-
+    async verify(req, res, next) {
         const userFacade = new UserFacade();
         const validation = await userFacade.validateOnCreate(req.body);
 
-        if(typeof validation === 'string'){
+        if (typeof validation === 'string') {
             return res.json({
                 status: false,
                 message: validation
             });
         }
-        else{
-            try {
-                const user_data = await UserModel.findOne({where: {username: validation.username}});
-
-                if(user_data){
-                    const result = await bcrypt.compare(req.body.password, user_data.password);
-                    
-                    if(result)
-                        return res.json({
-                            status: true,
-                            message: 'valid'
-                        });
+        else {
+            passport.authenticate('local', { session: false }, (err, user, info) => {
+                if (err || !user) {
+                    console.error(err);
+                    return res.status(500).json({
+                        status: false,
+                        message: err || 'user not exist',
+                        user: user
+                    });
                 }
-            } catch (error) {
-                console.error(error);
-                return res.status(500).json({
-                    status: false,
-                    message: error.message
-                })
-            }
 
-            return res.json({
-                status: false,
-                message: 'not valid'
-            });
+                req.login(user, { session: false }, (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send(err);
+                    }
+
+                    jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (err, token) => {
+                        if(err){
+                            console.error(err);
+                            return res.status(500).json({
+                                status: false,
+                                message: err
+                            });
+                        }
+                        return res.json({ status: true, message: token });
+                    });
+                });
+            })(req, res);
         }
     }
 }
