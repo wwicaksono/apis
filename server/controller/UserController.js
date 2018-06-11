@@ -1,6 +1,7 @@
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import Promise from 'bluebird';
 
 import UserModel from '../models/UserModel';
 import UserFacade from '../facade/UserFacade';
@@ -47,8 +48,7 @@ class UserController {
   }
 
   static async verify(req, res) {
-    const userFacade = new UserFacade();
-    const validation = await userFacade.validateOnCreate(req.body);
+    const validation = await UserFacade.validateOnCreate(req.body);
 
     if (typeof validation === 'string') {
       return res.json({
@@ -57,32 +57,44 @@ class UserController {
       });
     }
 
-    passport.authenticate('local', { session: false }, (err, user) => {
-      if (err || !user) {
-        return res.status(500).json({
-          status: false,
-          message: err || 'user not exist',
-        });
-      }
-
-      req.login(user, { session: false }, (loginErr) => {
-        if (loginErr) {
-          console.error(loginErr);
-          return res.status(500).send(err);
+    return new Promise((resolve, reject) => {
+      passport.authenticate('local', { session: false }, (errAuth, user) => {
+        if (errAuth) {
+          return reject(errAuth);
+        } else if (!user) {
+          return reject(new Error('username/password invalid'));
         }
-
-        jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (JWTErr, token) => {
-          if (JWTErr) {
-            console.error(JWTErr);
-            return res.status(500).json({
-              status: false,
-              message: err,
-            });
-          }
-          return res.json({ status: true, message: token });
-        });
-      });
-    })(req, res);
+        return resolve(user);
+      })(req, res);
+    })
+      .then(user =>
+        new Promise((resolve, reject) => {
+          req.login(user, { session: false }, (loginErr) => {
+            if (loginErr) {
+              return reject(loginErr);
+            }
+            return resolve(user);
+          });
+        }))
+      .then(user =>
+        new Promise((resolve, reject) => {
+          jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (JWTErr, token) => {
+            if (JWTErr) {
+              return reject(JWTErr);
+            }
+            return resolve(token);
+          });
+        }))
+      .then(token =>
+        res.json({
+          status: true,
+          message: token,
+        }))
+      .catch(error =>
+        res.status(500).json({
+          status: false,
+          message: error.message,
+        }));
   }
 }
 
