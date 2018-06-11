@@ -12,11 +12,21 @@
 
 # How to run:
 ```shell
-npm install
+$ npm install
 
-npm install sequlize-cli --g
+$ npm install sequlize-cli --g
 
-sequelize db:migrate
+$ sequelize db:migrate
 
-sequelize db:seed:all
+$ sequelize db:seed:all
+
+$ npm start
 ```
+
+# Available routes
+This project will run on localhost:7000 (server/server.js).
+
+So, available routes are:
+- **GET** localhost:7000/v1/apis/users/ (GET list of users) (JWT authenticated)
+- **PUT** localhost:7000/v1/apis/users/ (PUT new user)
+- **POST** localhost:7000/v1/apis/users/ (Validate registered user)
