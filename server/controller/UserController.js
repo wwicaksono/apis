@@ -1,102 +1,89 @@
-import UserModel from "../models/UserModel";
-import UserFacade from "../facade/UserFacade";
-import passport from "passport";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import passport from 'passport';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+
+import UserModel from '../models/UserModel';
+import UserFacade from '../facade/UserFacade';
 
 class UserController {
+  static async create(req, res) {
+    const username = req.body.username || null;
+    const password = req.body.password || null;
 
-    constructor() {
-    };
+    let hash = null;
+    if (password) { hash = await bcrypt.hash(password, 5); }
 
-    async create(req, res, next) {
+    try {
+      const result = await UserModel.findOrCreate({
+        where: {
+          username,
+        },
+        defaults: {
+          password: hash,
+        },
+      });
 
-        const username = req.body.username || null;
-        const password = req.body.password || null;
+      if (result[1]) {
+        res.json('user created');
+      } else {
+        res.json('username exists');
+      }
+    } catch (error) {
+      res.json('error');
+      throw error;
+    }
+  }
 
-        let hash = null;
-        if (password)
-            hash = await bcrypt.hash(password, 5);
+  static async get(req, res) {
+    const id = req.params.id || null;
 
-        try {
-            const result = await UserModel.findOrCreate(
-                {
-                    where: {
-                        username: username
-                    },
-                    defaults: {
-                        password: hash
-                    }
-                }
-            );
+    const users = id ? await UserModel.findById(id) : await UserModel.findAll();
 
-            if (result[1]) {
-                res.json('user created');
-            }
-            else {
-                res.json('username exists');
-            }
+    return res.json(users);
+  }
 
-        } catch (error) {
-            res.json('error');
-            throw error;
+  static delete(req, res) {
+    return res.status(200).json('deleted');
+  }
+
+  static async verify(req, res) {
+    const userFacade = new UserFacade();
+    const validation = await userFacade.validateOnCreate(req.body);
+
+    if (typeof validation === 'string') {
+      return res.json({
+        status: false,
+        message: validation,
+      });
+    }
+
+    passport.authenticate('local', { session: false }, (err, user) => {
+      if (err || !user) {
+        return res.status(500).json({
+          status: false,
+          message: err || 'user not exist',
+        });
+      }
+
+      req.login(user, { session: false }, (loginErr) => {
+        if (loginErr) {
+          console.error(loginErr);
+          return res.status(500).send(err);
         }
-    }
 
-    async get(req, res, next) {
-
-        const id = req.params.id || null;
-
-        const users = id ? await UserModel.findById(id) : await UserModel.findAll();
-
-        res.json(
-            users
-        );
-    }
-
-    delete(req, res, next) {
-        res.status(200).json('deleted');
-    }
-
-    async verify(req, res, next) {
-        const userFacade = new UserFacade();
-        const validation = await userFacade.validateOnCreate(req.body);
-
-        if (typeof validation === 'string') {
-            return res.json({
-                status: false,
-                message: validation
+        jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (JWTErr, token) => {
+          if (JWTErr) {
+            console.error(JWTErr);
+            return res.status(500).json({
+              status: false,
+              message: err,
             });
-        }
-        else {
-            passport.authenticate('local', { session: false }, (err, user, info) => {
-                if (err || !user) {
-                    return res.status(500).json({
-                        status: false,
-                        message: err || 'user not exist'
-                    });
-                }
-
-                req.login(user, { session: false }, (err) => {
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send(err);
-                    }
-
-                    jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (err, token) => {
-                        if(err){
-                            console.error(err);
-                            return res.status(500).json({
-                                status: false,
-                                message: err
-                            });
-                        }
-                        return res.json({ status: true, message: token });
-                    });
-                });
-            })(req, res);
-        }
-    }
+          }
+          return res.json({ status: true, message: token });
+        });
+      });
+    })(req, res);
+  }
 }
 
 export default UserController;
