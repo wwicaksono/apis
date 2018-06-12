@@ -1,9 +1,8 @@
 class UserFacade {
   /**
-     * Validate on create new user
-     * @param {username, password} params
-     * @return {mixed}
-     */
+   * Validate data before create
+   * @param {*} params username-password
+   */
   static async validateOnCreate(params) {
     if (params.username && params.password) {
       return {

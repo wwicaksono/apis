@@ -1,7 +1,7 @@
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import Promise from 'bluebird';
+import Bluebird from 'bluebird';
 
 import UserModel from '../models/UserModel';
 import UserFacade from '../facade/UserFacade';
@@ -57,7 +57,7 @@ class UserController {
       });
     }
 
-    return new Promise((resolve, reject) => {
+    return new Bluebird((resolve, reject) => {
       passport.authenticate('local', { session: false }, (errAuth, user) => {
         if (errAuth) {
           return reject(errAuth);
@@ -68,7 +68,7 @@ class UserController {
       })(req, res);
     })
       .then(user =>
-        new Promise((resolve, reject) => {
+        new Bluebird((resolve, reject) => {
           req.login(user, { session: false }, (loginErr) => {
             if (loginErr) {
               return reject(loginErr);
@@ -77,7 +77,7 @@ class UserController {
           });
         }))
       .then(user =>
-        new Promise((resolve, reject) => {
+        new Bluebird((resolve, reject) => {
           jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (JWTErr, token) => {
             if (JWTErr) {
               return reject(JWTErr);
