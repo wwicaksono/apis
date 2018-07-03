@@ -1,10 +1,10 @@
-import winston from 'winston';
+import { createLogger, transports } from 'winston';
 
 const tsFormat = () => (new Date()).toLocaleTimeString();
 
-const logger = new (winston.Logger)({
+const logger = createLogger({
   transports: [
-    new (winston.transports.Console)({
+    new (transports.Console)({
       timestamp: tsFormat,
       handleExceptions: true,
       colorize: true,

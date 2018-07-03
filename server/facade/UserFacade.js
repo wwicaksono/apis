@@ -9,7 +9,8 @@ class UserFacade {
         username: params.username,
         password: params.password,
       };
-    } else if (!params.username) {
+    }
+    if (!params.username) {
       return 'username not provided';
     }
 

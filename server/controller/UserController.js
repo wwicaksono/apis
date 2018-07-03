@@ -61,40 +61,37 @@ class UserController {
       passport.authenticate('local', { session: false }, (errAuth, user) => {
         if (errAuth) {
           return reject(errAuth);
-        } else if (!user) {
+        }
+        if (!user) {
           return reject(new Error('username/password invalid'));
         }
         return resolve(user);
       })(req, res);
     })
-      .then(user =>
-        new Bluebird((resolve, reject) => {
-          req.login(user, { session: false }, (loginErr) => {
-            if (loginErr) {
-              return reject(loginErr);
-            }
-            return resolve(user);
-          });
-        }))
-      .then(user =>
-        new Bluebird((resolve, reject) => {
-          jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (JWTErr, token) => {
-            if (JWTErr) {
-              return reject(JWTErr);
-            }
-            return resolve(token);
-          });
-        }))
-      .then(token =>
-        res.json({
-          status: true,
-          message: token,
-        }))
-      .catch(error =>
-        res.status(500).json({
-          status: false,
-          message: error.message,
-        }));
+      .then(user => new Bluebird((resolve, reject) => {
+        req.login(user, { session: false }, (loginErr) => {
+          if (loginErr) {
+            return reject(loginErr);
+          }
+          return resolve(user);
+        });
+      }))
+      .then(user => new Bluebird((resolve, reject) => {
+        jwt.sign(user.toJSON(), process.env.SECRET_KEY, { expiresIn: '1h' }, (JWTErr, token) => {
+          if (JWTErr) {
+            return reject(JWTErr);
+          }
+          return resolve(token);
+        });
+      }))
+      .then(token => res.json({
+        status: true,
+        message: token,
+      }))
+      .catch(error => res.status(500).json({
+        status: false,
+        message: error.message,
+      }));
   }
 }
 
