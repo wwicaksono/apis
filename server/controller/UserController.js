@@ -57,7 +57,7 @@ class UserController {
       });
     }
 
-    return new Bluebird((resolve, reject) => {
+    new Bluebird((resolve, reject) => {
       passport.authenticate('local', { session: false }, (errAuth, user) => {
         if (errAuth) {
           return reject(errAuth);

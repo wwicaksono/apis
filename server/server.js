@@ -4,13 +4,15 @@ import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import logger from './library/logger';
 import userRouter from './routes/userRouter';
+import helmet from 'helmet';
 
 const server = express();
 const port = process.env.PORT || 7000;
 
 
 // Middleware
-server.use(morgan(':method :url :status :response-time ms :: :res[content-length] ":referrer" ":user-agent"'), { stream: logger.stream });
+server.use(helmet());
+server.use(morgan(':method :url :status :response-time ms :: :res[content-length] ":referrer" ":user-agent"', { stream: logger.stream }));
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({ extended: false }));
 
