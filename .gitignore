@@ -3,3 +3,5 @@ server-dist/
 server/migrations/*.json
 server/seeders/*.json
 .env
+.idea
+
