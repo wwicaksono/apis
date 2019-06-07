@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
+import helmet from 'helmet';
 import logger from './library/logger';
 import userRouter from './routes/userRouter';
-import helmet from 'helmet';
 
 const server = express();
 const port = process.env.PORT || 7000;

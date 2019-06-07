@@ -14,7 +14,7 @@
 ```shell
 $ npm install
 
-$ npm install sequlize-cli --g
+$ npm install sequelize-cli --g
 
 $ sequelize db:migrate
 
